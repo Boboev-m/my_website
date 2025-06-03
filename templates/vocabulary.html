@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>Vocabulary</title>
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    body {
+      background-color: rgb(247, 247, 234);
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #4a90e2;
+      padding: 10px 20px;
+      color: #fff;
+    }
+
+    .nav-left a {
+      color: white;
+      margin-right: 20px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .nav-right a button {
+      background: none;
+      text-decoration: none;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 20px 0 10px;
+    }
+
+    .search-bar {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .search-bar input {
+      width: 60%;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      padding: 0 20px;
+    }
+
+    .vocab-card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      transition: transform 0.2s;
+      position: relative;
+    }
+
+    .vocab-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .vocab-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .vocab-word {
+      flex: 1;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .word {
+      font-size: 24px;
+      color: #4a90e2;
+      font-weight: bold;
+    }
+
+    .pinyin {
+      margin-left: 10px;
+      font-size: 18px;
+      color: #555;
+    }
+
+    .vocab-meta {
+        flex: 1;
+        text-align: center;
+        font-size: 14px;
+        color: #777;
+        line-height: 1.4;
+    }
+
+    .vocab-icons {
+        flex: 1;
+        display: flex;
+        justify-content: flex-end;
+        gap: 5px;
+    }
+
+    .icon-button {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+
+    .vocab-meaning, .vocab-part, .vocab-example {
+      margin-bottom: 5px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width:900px){
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+        }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="navbar">
+    <div class="nav-left">
+      <a href="/">🏠 ХОНА</a>
+      <a href="/books">📖 КИТОБҲОИ HSK</a>
+      <a href="/about">ℹ️ ОИДИ ВЕБСАЙТ</a>
+    </div>
+    <div class="nav-right">
+      <a href="{{ url_for('flashcard_study') }}">
+        <button>🀄 ФЛЕШКОРТҲО</button>
+      </a>
+      <a href="{{ url_for('vocabulary', favorites='1' if not show_favorites else None) }}">
+        <button id="toggle-favorites-btn">
+          {% if show_favorites %}
+            🈶 ҲАМАИ ЛУҒАТҲО
+          {% else %}
+            ❤️ ДӮСТДОШТАҲО
+          {% endif %}
+        </button>
+      </a>
+    </div>
+
+  </div>
+
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h1 id="vocab-title">ЛУҒАТҲО</h1>
+    
+  </div>
+
+
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Ҷустуҷӯ аз рӯи калима, пинин ё пинин беоҳанг..." oninput="filterCards()">
+  </div>
+
+  <div class="card-container" id="vocabCards">
+    {% for word in vocab %}
+    <div class="vocab-card" data-id="{{ word.id }}" data-word="{{ word.word }}" data-pinyin="{{ word.pinyin|lower }}" data-pinyin-plain="{{ word.pinyinwt|lower }}" data-meaning="{{ word.meaning|lower }}">
+      <div class="vocab-icons">
+        <button class="icon-button" onclick="playAudio('{{ word.audio }}')">
+          <i class='bx bxs-volume-full'></i>
+        </button>
+        <button class="icon-button favorite-icon" onclick="toggleFavorite('{{ word.id }}')">
+          <i class='bx {{ 'bxs-heart' if word.id in favorite_word_ids else 'bx-heart' }}'></i>
+        </button>
+        <!-- Flashcard button -->
+        <button class="flashcard-btn" onclick="toggleFlashcard('{{ word.id }}')"
+                style="border: none; background-color: transparent; font-size: 20px; cursor: pointer;">
+          <span id="flash-icon-{{ word.id }}">
+            {% if word.id in flashcard_words %}
+              <i class="fa-solid fa-square-minus"></i>
+            {% else %}
+              <i class="fa-solid fa-square-plus"></i>
+            {% endif %}
+          </span>
+        </button>
+
+      </div>
+      <div class="vocab-header">
+        <div class="vocab-word">
+          <span class="word">{{ word.word }}</span>
+          <span class="pinyin">({{ word.pinyin }})</span>
+        </div>
+        <div class="vocab-meta">
+          <div>Сатҳ: {{ word.level }}</div>
+          <div>Дарс: {{ word.lesson }}</div>
+        </div>
+      </div>
+      <div class="vocab-meaning">
+        <strong>Маъно:</strong> {{ word.meaning }}
+      </div>
+      <div class="vocab-part">
+        <strong>Ҳиссаи нутқ:</strong> {{ word.part }}
+      </div>
+      <div class="vocab-example">
+        <strong>Мисол:</strong> {{ word.example }}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <script>
+
+    let showingFavoritesOnly = false;
+
+    function filterCards() {
+      const searchInput = document.getElementById('searchInput').value.toLowerCase();
+      const cards = document.querySelectorAll('.vocab-card');
+      const searchTerms = searchInput.split(' ').map(term => term.trim()).filter(term => term !== '');
+      const searchRegex = new RegExp(searchTerms.join('|'), 'i');
+      const searchPinyinRegex = new RegExp(searchTerms.map(term => term.replace(/[0-9]/g, '')).join('|'), 'i');
+      const searchPinyinPlainRegex = new RegExp(searchTerms.map(term => term.replace(/[0-9]/g, '')).join('|'), 'i');
+      let hasVisibleCards = false;
+      cards.forEach(card => {
+        const word = card.getAttribute('data-word').toLowerCase();
+        const pinyin = card.getAttribute('data-pinyin').toLowerCase();
+        const pinyinPlain = card.getAttribute('data-pinyin-plain').toLowerCase();
+        const meaning = card.getAttribute('data-meaning').toLowerCase();
+
+        if (showingFavoritesOnly && !card.querySelector('.favorite-icon i').classList.contains('bxs-heart')) {
+          card.classList.add('hidden');
+          return;
+        }
+
+        if (word.match(searchRegex) || pinyin.match(searchPinyinRegex) || pinyinPlain.match(searchPinyinPlainRegex) || meaning.match(searchRegex)) {
+          card.classList.remove('hidden');
+          hasVisibleCards = true;
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    }
+
+    function playAudio(path) {
+    const audio = new Audio('/static/' + path);
+    audio.play();
+    }
+
+    function toggleFavorite(wordId) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    fetch('/toggle_favorite', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ word_id: wordId }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        const card = document.querySelector(`.vocab-card[data-id='${wordId}']`);
+        const icon = card?.querySelector('.favorite-icon i');
+        if (!icon) return;
+
+        if (data.favorited) {
+            icon.className = 'bx bxs-heart'; // filled heart
+        } else {
+            icon.className = 'bx bx-heart'; // empty heart
+        }
+
+        if (showingFavoritesOnly) filterCards();
+    })
+    .catch(error => {
+        console.error('Error toggling favorite:', error);
+    });
+    }
+
+    function toggleFavoritesView() {
+        showingFavoritesOnly = !showingFavoritesOnly;
+
+        const title = document.getElementById('vocab-title');
+        const btn = document.getElementById('toggle-favorites-btn');
+
+        if (showingFavoritesOnly) {
+            title.textContent = 'Favorite Vocabulary';
+            btn.textContent = '📘 All Vocabulary';
+        } else {
+            title.textContent = 'Vocabulary';
+            btn.textContent = '❤️ Favorites';
+        }
+    }
+
+    function toggleFlashcard(wordId) {
+        fetch('/toggle_flashcard', {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+          },
+          body: JSON.stringify({ word_id: wordId })
+        })
+        .then(res => res.json())
+        .then(data => {
+          const icon = document.getElementById(`flash-icon-${wordId}`);
+          if (data.added) {
+            icon.innerHTML = '<i class="fa-solid fa-square-minus"></i>';
+          } else {
+            icon.innerHTML = '<i class="fa-solid fa-square-plus"></i>';
+          }
+        });
+      }
+  </script>
+
+</body>
+</html>

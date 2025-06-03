@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Log In - Chinese Learning App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .form-error { color: red; font-size: 0.9em; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+<nav>
+    <div class="nav-left">
+        <a href="/">🏠 ХОНА</a>
+    </div>
+    <div class="nav-right">
+        <a href="/signup">Бақайд гирифтан лозим аст? БАҚАЙДГИРӢ</a>
+    </div>
+</nav>
+
+<div class="form-container" style="width: 90%; display: flex; flex-direction: column; align-items: center;">
+    <h2>ДАРОМАДАН</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        {{ form.username.label }}<br>
+        {{ form.username() }}<br>
+        {% for error in form.username.errors %}
+            <div class="form-error">{{ error }}</div>
+        {% endfor %}
+
+        {{ form.password.label }}<br>
+        {{ form.password() }}<br>
+        {% for error in form.password.errors %}
+            <div class="form-error">{{ error }}</div>
+        {% endfor %}
+
+        {{ form.submit() }}
+    </form>
+</div>
+
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul>
+        {% for msg in messages %}
+            <li style="text-align: center; list-style: none; color: red;">{{ msg }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+</body>
+</html>

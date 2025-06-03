@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Flashcard Study Mode</title>
+  <style>
+     body {
+      background-color: rgb(247, 247, 234);
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    
+    nav {
+        background-color: #4a90e2;
+        padding: 10px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+    }
+
+    nav a {
+        color: white;
+        text-decoration: none;
+        margin-right: 15px;
+        font-weight: 500;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .flashcard {
+      width: 320px;
+      height: 220px;
+      perspective: 1000px;
+    }
+
+    .flashcard-inner {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transition: transform 0.8s ease;
+      transform-style: preserve-3d;
+    }
+
+    .flashcard.flipped .flashcard-inner {
+      transform: rotateY(180deg);
+    }
+
+    .flashcard-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+      background: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      backface-visibility: hidden;
+      font-size: 20px;
+      text-align: center;
+    }
+
+    .flashcard-front {
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      color: #0d47a1;
+      font-size: 50px;
+    }
+
+    .flashcard-back {
+      background: linear-gradient(135deg, #fff8e1, #ffe082);
+      color: #4e342e;
+      transform: rotateY(180deg);
+    }
+
+    .buttons {
+      margin-top: 50px;
+      display: flex;
+      gap: 15px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      box-shadow: 0 3px 10px rgba(0, 123, 255, 0.3);
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .empty-message {
+      font-size: 18px;
+      color: #888;
+    }
+
+    .study-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 60px); /* Full height minus navbar */
+  text-align: center;
+  }
+
+  </style>
+</head>
+<body>
+  
+    <nav>
+        <div class="nav-left">
+            <a href="/">🏠 ХОНА</a>
+            <a href="/vocabulary">📚 ЛУҒАТҲО</a>
+            <a href="/books">📖 КИТОБҲОИ HSK</a>
+            <a href="/about">ℹ️ ОИДИ ВЕБСАЙТ</a>
+        </div>
+    </nav>
+  
+  <div class="study-container">
+      <h2>Омӯзиши флешкорт</h2>
+
+  {% if flashcards %}
+    <div id="flashcard" class="flashcard" onclick="flipCard()">
+      <div class="flashcard-inner">
+        <div id="card-front" class="flashcard-face flashcard-front">
+          {{ flashcards[0].word }}
+        </div>
+        <div id="card-back" class="flashcard-face flashcard-back">
+          <strong>Маъно:</strong> {{ flashcards[0].meaning }}<br>
+          <strong>Пинин:</strong> {{ flashcards[0].pinyin }}<br>
+          <strong>Мисол:</strong> {{ flashcards[0].example }}
+        </div>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button id="prevBtn" onclick="prevCard()" disabled>Пеш</button>
+      <button id="nextBtn" onclick="nextCard()">Баъдӣ</button>
+    </div>
+  {% else %}
+    <p class="empty-message">No flashcards selected. Add some words to flashcards first.</p>
+  {% endif %}
+  </div>
+  <script>
+    const flashcardData = {{ flashcards | tojson }};
+    let currentIndex = 0;
+    let flipped = false;
+
+    function updateCard() {
+      const card = flashcardData[currentIndex];
+      document.getElementById("card-front").textContent = card.word;
+      document.getElementById("card-back").innerHTML = `
+        <strong>Meaning:</strong> ${card.meaning}<br>
+        <strong>Pinyin:</strong> ${card.pinyin}<br>
+        <strong>Example:</strong> ${card.example}
+      `;
+
+      // Reset to front
+      flipped = false;
+      document.getElementById("flashcard").classList.remove("flipped");
+
+      document.getElementById("prevBtn").disabled = currentIndex === 0;
+      document.getElementById("nextBtn").disabled = currentIndex === flashcardData.length - 1;
+    }
+
+    function flipCard() {
+      flipped = !flipped;
+      document.getElementById("flashcard").classList.toggle("flipped", flipped);
+    }
+
+    function nextCard() {
+      if (currentIndex < flashcardData.length - 1) {
+        currentIndex++;
+        updateCard();
+      }
+    }
+
+    function prevCard() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        updateCard();
+      }
+    }
+  </script>
+</body>
+</html>

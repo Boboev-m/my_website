@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Home - Chinese Learning App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <nav>
+        <div class="nav-left">
+            <a href="/">🏠 ХОНА</a>
+            <a href="/vocabulary">📚 ЛУҒАТҲО</a>
+            <a href="/books">📖 КИТОБҲОИ HSK</a>
+            <a href="/about">ℹ️ ОИДИ ВЕБСАЙТ</a>
+        </div>
+        {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('admin') }}">🛠 ПАНЕЛИ АДМИН</a>
+        {% endif %}
+        <div class="nav-right">
+            {% if username %}
+                👋 САЛОМ, {{ username }} | <a href="{{ url_for('logout') }}">БАРОМАДАН</a>
+            {% else %}
+                <a href="{{ url_for('signup') }}">БАҚАЙДГИРӢ</a> | <a href="{{ url_for('login') }}"> ДАРОМАДАН</a>
+            {% endif %}
+        </div>
+
+    </nav>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul style="background-color: transparent;">
+                    {% for msg in messages %}
+                    <li style="text-align: center; list-style: none;">{{msg}}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+    <header class="hero">
+        <h1>欢迎 (Huānyíng) — Хуш Омадед Ба Барномаи Омӯзиши Забони Чинӣ!</h1>
+        <p>Бо роҳи шавқовар ва содда омӯхтани луғати чинӣ. 🌸</p>
+        <a href="/vocabulary" class="btn">Омӯзишро оғоз кунед</a>
+    </header>
+
+    <section class="features">
+        <div class="feature">
+            <h3>📚 Луғат омӯзед</h3>
+            <p>Калимаҳо ва ибораҳои муҳимро бо аудио ва мисолҳо азхуд кунед.</p>
+        </div>
+        <div class="feature">
+            <h3>⭐ Пешравии худро пайгирӣ кунед</h3>
+            <p>Калимаҳои дӯстдоштаи худро қайд кунед ва рӯйхати шахсии худро созед. Инчунин флешкортҳо илова кунед, то тезтар ёд гиред.</p>
+        </div>
+        <div class="feature">
+            <h3>🔊 Талаффузро машқ кунед</h3>
+            <p>Барои такмил додани малакаҳои худ бо аудиои айнӣ гӯш кунед ва такрор кунед.</p>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 Барномаи омӯзиши Забони Чинӣ.</p>
+    </footer>
+</body>
+</html>
